@@ -1,10 +1,9 @@
 services:
   selenium-app:
-    build: account-auth
-    container_name: selenium_registration_app
+    build: .
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./screenshots:/app/screenshots
     env_file:
       - .env

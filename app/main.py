@@ -1,11 +1,11 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
-
 from app.models import UserCredentials
 from app.selenium_driver import Selenium
 from app.proxy import get_random_proxy, load_proxies
 from loguru import logger
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
