@@ -1,0 +1,13 @@
+blinker==1.7.0
+loguru
+python-dateutil
+requests
+selenium
+selenium-stealth
+setuptools
+aiogram
+fastapi
+uvicorn
+pydantic
+python-dotenv
+undetected-chromedriver

@@ -1,0 +1,19 @@
+# Editors and IDEs
+.vscode/
+.idea/
+.DS_Store
+# Build
+dist/
+account-auth/venv/
+
+# Cache
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets
+.env
+
+# Logs
+screenshots/
