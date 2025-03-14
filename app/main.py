@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from app.models import UserCredentials
 from app.selenium_driver import Selenium
-from app.proxy import get_random_proxy, load_proxies
+from app.proxy import get_working_proxy
 from loguru import logger
 
 app = FastAPI()
@@ -18,7 +18,7 @@ app.add_middleware(
 @app.post("/register")
 async def register(credentials: UserCredentials):
     try:
-        proxy = get_random_proxy(load_proxies())
+        proxy = get_working_proxy()
         bot = Selenium(proxy)
         token = bot.register(credentials.email, credentials.password)
         bot.close()
@@ -35,7 +35,7 @@ async def register(credentials: UserCredentials):
 @app.post("/login")
 async def login(credentials: UserCredentials):
     try:
-        proxy = get_random_proxy(load_proxies())
+        proxy = get_working_proxy()
         bot = Selenium(proxy)
         token = bot.login(credentials.email, credentials.password)
         bot.close()
