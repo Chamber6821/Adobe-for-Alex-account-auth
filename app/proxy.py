@@ -1,5 +1,5 @@
-import random
 import requests
+import concurrent.futures
 from loguru import logger
 from config.settings import PROXY_LIST_URL, PROXY_TEST_URL, PROXY_TEST_TIMEOUT
 
@@ -22,20 +22,25 @@ def is_proxy_valid(proxy):
         response = requests.get(PROXY_TEST_URL, proxies=proxies_dict, timeout=PROXY_TEST_TIMEOUT)
         if response.status_code == 200:
             logger.success(f"Proxy {proxy['host']}:{proxy['port']} is working.")
-            return True
+            return proxy
     except requests.RequestException as e:
         logger.error(f"Proxy {proxy['host']}:{proxy['port']} is not working: {e}")
-    return False
+    return None
 
 
 def get_working_proxy():
-    while True:
-        proxies = fetch_proxies()
-        if not proxies:
-            logger.critical("Failed to load the proxy.")
-            continue
-        random.shuffle(proxies)
-        for proxy in proxies:
-            if is_proxy_valid(proxy):
+    proxies = fetch_proxies()
+    if not proxies:
+        logger.critical("Failed to load the proxy.")
+        return None
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_to_proxy = {executor.submit(is_proxy_valid, proxy): proxy for proxy in proxies}
+        for future in concurrent.futures.as_completed(future_to_proxy):
+            proxy = future.result()
+            if proxy:
+                executor.shutdown(wait=False, cancel_futures=True)
                 return proxy
-        logger.warning("All proxies are not working, we repeat the request.")
+
+    logger.warning("All proxies are inoperable, we repeat the request.")
+    return None

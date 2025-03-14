@@ -2,6 +2,8 @@ import time
 import base64
 import shutil
 import json
+import names
+from datetime import datetime, UTC
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -14,10 +16,12 @@ import os
 from .mail_tm import MailTM
 
 class Eyes:
-    def __init__(self, directory: str, browser: webdriver.Chrome):
+    def __init__(self, method: str, email: str, browser: webdriver.Chrome):
+        timestamp = datetime.now(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+        self.directory = f"screenshots/{timestamp}-{method}-{email}"
         self.index = 0
-        self.directory = directory
         self.browser = browser
+        os.makedirs(self.directory, exist_ok=True)
 
     def look(self):
         try:
@@ -25,8 +29,6 @@ class Eyes:
             self.index += 1
             logger.info(f"Capturing screenshot: {filename}")
             screenshot = self.browser.get_screenshot_as_base64()
-            if not os.path.exists(self.directory):
-                os.makedirs(self.directory, exist_ok=True)
             with open(filename, "wb") as file:
                 file.write(base64.b64decode(screenshot))
         except Exception as e:
@@ -54,7 +56,7 @@ class Selenium:
             options.add_argument("--log-level=0")
             options.add_argument("--verbose")
             self.driver = uc.Chrome(driver_executable_path='/usr/bin/chromedriver', options=options)
-            self.eyes = Eyes("screenshots", self.driver)
+            self.eyes = None
             stealth(
                 self.driver,
                 languages=["en-US", "en"],
@@ -70,6 +72,7 @@ class Selenium:
             raise
 
     def login(self, email: str, password: str) -> str:
+        self.eyes = Eyes("login", email, self.driver)
         try:
             logger.info("Starting login process")
             self.get_page_without_webdriver_flag("https://adminconsole.adobe.com")
@@ -124,12 +127,14 @@ class Selenium:
             token = self.extract_token()
             logger.success("Login successful!")
             self.eyes.look()
+            self.eyes.drop()
             return token
         except Exception as e:
             logger.error(f"Login failed: {e}")
             return ""
 
     def register(self, email: str, password: str) -> str:
+        self.eyes = Eyes("register", email, self.driver)
         try:
             logger.info("Starting registration process")
             self.get_page_without_webdriver_flag("https://adminconsole.adobe.com")
@@ -163,8 +168,8 @@ class Selenium:
             last_name_input = WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, '*[data-id="Signup-LastNameField"]'))
             )
-            first_name_input.send_keys('John')
-            last_name_input.send_keys('Frank')
+            first_name_input.send_keys(names.get_first_name())
+            last_name_input.send_keys(names.get_last_name())
             time.sleep(2)
             self.eyes.look()
             create_account_button = WebDriverWait(self.driver, 30).until(
@@ -179,6 +184,7 @@ class Selenium:
             token = self.extract_token()
             logger.success("Registration successful!")
             self.eyes.look()
+            self.eyes.drop()
             return token
         except Exception as e:
             logger.error(f"Registration failed: {e}")
@@ -202,7 +208,6 @@ class Selenium:
     def close(self):
         try:
             self.driver.quit()
-            self.eyes.drop()
             logger.success("Browser closed successfully")
         except Exception as e:
             logger.error(f"Error closing browser: {e}")
