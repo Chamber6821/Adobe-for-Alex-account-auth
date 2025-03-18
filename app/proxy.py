@@ -34,12 +34,12 @@ def get_working_proxy():
         logger.critical("Failed to load the proxy.")
         return None
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(10, len(proxies))) as executor:
         future_to_proxy = {executor.submit(is_proxy_valid, proxy): proxy for proxy in proxies}
         for future in concurrent.futures.as_completed(future_to_proxy):
             proxy = future.result()
             if proxy:
-                executor.shutdown(wait=False, cancel_futures=True)
+                executor.shutdown(cancel_futures=True)
                 return proxy
 
     logger.warning("All proxies are inoperable, we repeat the request.")

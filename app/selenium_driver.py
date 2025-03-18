@@ -94,8 +94,9 @@ class Selenium:
                     self.eyes.look()
                     time.sleep(2)
                     if self.driver.find_elements(By.CSS_SELECTOR, '*[data-id="ErrorPage-Title"]'):
-                        logger.error("New emails temporary deny")
-                        raise
+                        error_message = self.driver.find_element(By.CSS_SELECTOR, '*[data-id="ErrorPage-Title"]').text
+                        self.eyes.look()
+                        logger.error(f"New emails temporary deny: {error_message}")
                     try:
                         mail_tm = MailTM(email, password)
                         code = mail_tm.get_mail_code()

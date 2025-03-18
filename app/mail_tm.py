@@ -7,13 +7,14 @@ import re
 
 class MailTM:
     def __init__(self, address: str, password: str):
-        self.address = address
+        self.address = address.lower()
         self.password = password
         self.base_url = "https://api.mail.tm"
         self.token = self.get_mail_token()
 
     def get_mail_token(self) -> str:
         try:
+            print(self.address)
             response = requests.post(
                 f"{self.base_url}/token",
                 json={"address": self.address, "password": self.password},
