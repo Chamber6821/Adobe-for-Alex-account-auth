@@ -14,7 +14,6 @@ class MailTM:
 
     def get_mail_token(self) -> str:
         try:
-            print(self.address)
             response = requests.post(
                 f"{self.base_url}/token",
                 json={"address": self.address, "password": self.password},
