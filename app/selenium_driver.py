@@ -123,6 +123,12 @@ class Selenium:
             time.sleep(2)
             self.eyes.look()
             WebDriverWait(self.driver, 180).until(EC.staleness_of(password_input))
+            while self.driver.find_elements(By.CSS_SELECTOR, '*[data-id$="-skip-btn"]'):
+                self.eyes.look()
+                skip_button = self.driver.find_element(By.CSS_SELECTOR, '*[data-id$="-skip-btn"]')
+                skip_button.click()
+                WebDriverWait(self.driver, 30).until(EC.staleness_of(skip_button))
+            self.eyes.look()
             WebDriverWait(self.driver, 180).until(EC.url_contains("https://adminconsole.adobe.com"))
             time.sleep(2)
             token = self.extract_token()
